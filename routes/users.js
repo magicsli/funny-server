@@ -2,9 +2,15 @@ const router = require('koa-router')()
 
 router.prefix('/users')
 
-router.get('/', function (ctx, next) {
-  ctx.body = 'this is a users response!'
+const UserControllers = require('../controllers/user')
+
+router.get('/', async (ctx, next) => {
+  ctx.body = await UserControllers.getUsers()
+  next()
 })
+
+
+
 
 router.get('/bar', function (ctx, next) {
   ctx.body = 'this is a users/bar response'
