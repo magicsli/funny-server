@@ -9,9 +9,6 @@ router.get('/', async (ctx, next) => {
   next()
 })
 
-
-
-
 router.post('/bar', async function (ctx, next) {
   ctx.body = await UserControllers.getUsers()
   next()

@@ -9,9 +9,6 @@ router.get('/', async (ctx, next) => {
   next()
 })
 
-
-
-
 router.get('/bar', function (ctx, next) {
   ctx.body = 'this is a users/bar response'
 })
