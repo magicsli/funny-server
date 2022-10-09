@@ -3,8 +3,8 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const IUser = {
-  _id: String,
   name: String,
+  password: String,
   avatar: String,
   create_time: Number
 }

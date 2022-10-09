@@ -23,12 +23,11 @@ const getUserById = async id => {
 }
 
 /**
- * 根据用户Id查询用户
- * @param {string} userInfo 用户信息
- * @returns 查询到的用户
+ * 插入新的用户
+ * @param {IUser} user 用户信息
  */
-const registerUser = async userInfo => {
-  return UserModel.insertOne(userInfo)
+const registerUser = async user => {
+  return UserModel.create(user)
 }
 
 module.exports = {

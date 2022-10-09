@@ -1,5 +1,4 @@
 let Io = null
-let socket = null
 
 const chatHandler = {
   socket: null,
