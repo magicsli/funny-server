@@ -35,6 +35,41 @@ router.post('/login', async (ctx, next) => {
 
     next()
   } else {
+    /**
+     * 注： 正常响应必须在内部的async周期中， 在回调函数中无法响应！（但是可以响应错误态/500）
+     */
+    const token = await new Promise((resolve, reject) => {
+      jwt.sign(
+        {
+          _id: loginUser._id.toString()
+        },
+        secret,
+        {
+          expiresIn: activeTime
+        },
+        (error, token) => {
+          if (error || !token) {
+            ctx.status = 500
+            ctx.body = {
+              message: `生成token失败！ ：${error.message}}`
+            }
+
+            reject(error)
+
+            next()
+          } else {
+            resolve(token)
+          }
+        }
+      )
+    })
+
+    ctx.cookies.set('token', token, {
+      path: '/', // 写cookie所在的路径
+      maxAge: activeTime, // cookie有效时长
+      overwrite: false // 是否允许重写})
+    })
+
     ctx.body = loginUser
     next()
   }
