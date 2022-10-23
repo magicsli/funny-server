@@ -3,7 +3,34 @@ const crypto = require('crypto')
 const jwt = require('jsonwebtoken')
 
 const UserControllers = require('../controllers/user')
-const { secret, activeTime } = require('../jwt')
+const { secret, activeTime, tempDueTime } = require('../jwt')
+
+/**
+ * token签名
+ * @param {string | ObjectId} id 用户Id
+ * @param {number} expiresIn 过期时间
+ * @returns 生成好的token
+ */
+const signToken = (id, expiresIn = activeTime) => {
+  return new Promise((resolve, reject) => {
+    jwt.sign(
+      {
+        _id: typeof id === 'string' ? id : id.toString()
+      },
+      secret,
+      {
+        expiresIn
+      },
+      (error, token) => {
+        if (error || !token) {
+          reject(error)
+        } else {
+          resolve(token)
+        }
+      }
+    )
+  })
+}
 
 // 登录
 router.post('/login', async (ctx, next) => {
@@ -28,40 +55,21 @@ router.post('/login', async (ctx, next) => {
   })
 
   if (!loginUser) {
-    ctx.status = 401
+    ctx.status = 500
     ctx.body = {
+      code: 500,
       message: '未找到该用户'
     }
 
     next()
   } else {
-    /**
-     * 注： 正常响应必须在内部的async周期中， 在回调函数中无法响应！（但是可以响应错误态/500）
-     */
-    const token = await new Promise((resolve, reject) => {
-      jwt.sign(
-        {
-          _id: loginUser._id.toString()
-        },
-        secret,
-        {
-          expiresIn: activeTime
-        },
-        (error, token) => {
-          if (error || !token) {
-            ctx.status = 500
-            ctx.body = {
-              message: `生成token失败！ ：${error.message}}`
-            }
-
-            reject(error)
-
-            next()
-          } else {
-            resolve(token)
-          }
-        }
-      )
+    const token = await signToken(loginUser._id).catch(() => {
+      ctx.status = 500
+      ctx.body = {
+        code: 500,
+        message: `生成token失败！ ：${error.message}}`
+      }
+      next()
     })
 
     ctx.cookies.set('token', token, {
@@ -75,6 +83,33 @@ router.post('/login', async (ctx, next) => {
   }
 })
 
+// 游客快速登录
+router.post('/visitor', async (ctx, next) => {
+  const tempUser = await UserControllers.createTempUser(tempDueTime)
+
+  /**
+   * 注： 正常响应必须在内部的async周期中， 在回调函数中无法响应！（但是可以响应错误态/500）
+   */
+  const token = await signToken(tempUser._id).catch(() => {
+    ctx.status = 500
+    ctx.body = {
+      code: 500,
+      message: `生成token失败！ ：${error.message}}`
+    }
+    next()
+  })
+
+  ctx.body = tempUser
+
+  ctx.cookies.set('token', token, {
+    path: '/', // 写cookie所在的路径
+    maxAge: tempDueTime, // cookie有效时长
+    overwrite: false // 是否允许重写})
+  })
+
+  next()
+})
+
 // 注册
 router.post('/register', async (ctx, next) => {
   const { username, password } = ctx.request.body
@@ -82,11 +117,34 @@ router.post('/register', async (ctx, next) => {
   if (!username || !password) {
     ctx.status = 500
     ctx.body = {
+      code: 500,
       message: '未输入正确的用户名或密码'
     }
 
     next()
+    return
+  }
 
+  if (username.length > 16) {
+    ctx.status = 500
+    ctx.body = {
+      code: 500,
+      message: '用户名过长！请限制在16个字符内'
+    }
+
+    next()
+
+    return
+  }
+
+  if (password.length > 20) {
+    ctx.status = 500
+    ctx.body = {
+      code: 500,
+      message: '密码过长！请限制在20个字符内'
+    }
+
+    next()
     return
   }
 
@@ -95,7 +153,7 @@ router.post('/register', async (ctx, next) => {
   const newPerson = await UserControllers.registerUser({
     name: username,
     password: passMd,
-    create_time: +new Date(),
+    create_time: Date.now(),
     avatar:
       'https://s2.51cto.com/oss/202107/05/de51b4f0711b421ed9714fea6e1ec5e8.jpg?x-oss-process=image/format,webp/ignore-error,1'
   })
@@ -103,30 +161,13 @@ router.post('/register', async (ctx, next) => {
   /**
    * 注： 正常响应必须在内部的async周期中， 在回调函数中无法响应！（但是可以响应错误态/500）
    */
-  const token = await new Promise((resolve, reject) => {
-    jwt.sign(
-      {
-        _id: newPerson._id.toString()
-      },
-      secret,
-      {
-        expiresIn: `${activeTime / 1000 / 60 / 60}H`
-      },
-      (error, token) => {
-        if (error || !token) {
-          ctx.status = 500
-          ctx.body = {
-            message: `生成token失败！ ：${error.message}}`
-          }
-
-          reject(error)
-
-          next()
-        } else {
-          resolve(token)
-        }
-      }
-    )
+  const token = await signToken(tempUser._id).catch(() => {
+    ctx.status = 500
+    ctx.body = {
+      code: 500,
+      message: `生成token失败！ ：${error.message}}`
+    }
+    next()
   })
 
   ctx.cookies.set('token', token, {
@@ -135,13 +176,7 @@ router.post('/register', async (ctx, next) => {
     overwrite: false // 是否允许重写})
   })
 
-  ctx.response.body = {
-    username: newPerson.name,
-    create_time: newPerson.create_time,
-    avatar: newPerson.avatar,
-    _id: newPerson._id,
-    token: token
-  }
+  ctx.body = newPerson
 
   next()
 })

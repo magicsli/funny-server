@@ -16,7 +16,7 @@ require('./socket')
 
 const index = require('./routes/index')
 const users = require('./routes/users')
-const chat = require('./routes/chat')
+const room = require('./routes/room')
 
 // error handler
 onerror(app)
@@ -58,7 +58,7 @@ app.use(
 // routes
 app.use(index.routes(), index.allowedMethods())
 app.use(users.routes(), users.allowedMethods())
-app.use(chat.routes(), chat.allowedMethods())
+app.use(room.routes(), room.allowedMethods())
 
 // error-handling
 app.on('error', (err, ctx) => {

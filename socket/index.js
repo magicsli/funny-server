@@ -1,7 +1,7 @@
 const { Server } = require('socket.io')
 const { createServer } = require('http')
 const Koa = require('koa')
-const handleChatSocket = require('./chat')
+// const handleChatSocket = require('./chat')
 
 const app = new Koa()
 
@@ -16,7 +16,7 @@ const io = new Server(httpServer, {
 
 io.on('connection', () => {
   const ChatIo = io.of('/chat')
-  ChatIo.on('connection', socket => handleChatSocket(socket, ChatIo))
+  // ChatIo.on('connection', socket => handleChatSocket(socket, ChatIo))
 })
 
 httpServer.listen(3001)
