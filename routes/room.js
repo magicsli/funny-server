@@ -13,13 +13,47 @@ router.get('/list', async (ctx, next) => {
   next()
 })
 
-router.post('/detail', async (ctx, next) => {
+router.get('/detail', async (ctx, next) => {
   const userId = ctx.state.user._id
-  const to = ctx.request.body.to
+  const to = ctx.request.query.id
 
-  const room = {}
+  if (!userId || !to) {
+    ctx.status = 500
+    ctx.body = {
+      code: 500,
+      message: '进入聊天室失败！'
+    }
 
-  ctx.body = await ChatControllers.getOrCreateRoom()
+    next()
+
+    return
+  }
+
+  const members = [userId, to]
+
+  let room = await ChatControllers.getRoom({
+    secret: true,
+    members: {
+      $all: members
+    }
+  })
+
+  if (!room) {
+    room = await ChatControllers.createRoom({
+      secret: true,
+      members,
+      status: 'normal',
+      create_time: Date.now()
+    })
+  }
+
+  room.members = await UserControllers.getUsers({
+    _id: {
+      $in: members
+    }
+  })
+
+  ctx.body = room
 
   next()
 })

@@ -3,13 +3,17 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const IRoom = {
-  // room_id: '_id', // 聊天室Id
+  secret: {
+    // 是否为 私聊 （一对一）
+    type: Boolean,
+    default: true
+  },
   members: [String], // 聊天室成员
-  status: String, // 当前状态
-  create_time: Number // 创建聊天室时间 （默认在第一个消息的发送时间）
+  status: String, // 当前状态 默认normal
+  create_time: Number
 }
 
 // 建立数据模型
-const RoomModel = mongoose.model('room', new Schema(IRoom, { _id: false }))
+const RoomModel = mongoose.model('room', new Schema(IRoom))
 
 module.exports = RoomModel

@@ -2,14 +2,12 @@ const UserModel = require('../models/user')
 const { randomString } = require('../utils')
 const crypto = require('crypto')
 
-const getUsers = async () => {
-  return UserModel.find(
-    {},
-    {
-      password: 0, // // 省略密码
-      friend: 0 // 省略朋友
-    }
-  )
+const getUsers = (options = {}) => {
+  return UserModel.find(options, {
+    password: 0, // // 省略密码
+    friend: 0, // 省略朋友
+    __v: 0 // 省略版本号
+  })
 }
 
 /**
@@ -17,12 +15,13 @@ const getUsers = async () => {
  * @param {string} name 用户名
  * @returns 查询到的用户
  */
-const getUserByName = async name => {
+const getUserByName = name => {
   return UserModel.find(
     { name },
     {
       password: 0, // 省略密码
-      friend: 0 // 省略朋友
+      friend: 0, // 省略朋友
+      __v: 0 // 省略版本号
     }
   )
 }
@@ -32,12 +31,13 @@ const getUserByName = async name => {
  * @param {string} id 用户id
  * @returns 查询到的用户
  */
-const getUserById = async id => {
+const getUserById = id => {
   return UserModel.find(
     { _id: id },
     {
       password: 0, // // 省略密码
-      friend: 0 // 省略朋友
+      friend: 0, // 省略朋友
+      __v: 0 // 省略版本号
     }
   )
 }

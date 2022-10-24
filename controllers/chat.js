@@ -72,9 +72,7 @@ const createRoom = async room => {
  * @param {IRoom} chat 待创建的消息
  */
 const getRoom = async options => {
-  // const roomId = toStr(id)
-
-  return RoomModel.find(options)
+  return RoomModel.findOne(options)
 }
 
 module.exports = {
