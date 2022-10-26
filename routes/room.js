@@ -8,7 +8,30 @@ router.prefix('/room')
 router.get('/list', async (ctx, next) => {
   const userId = ctx.state.user._id
 
-  ctx.body = await ChatControllers.getUserRooms(userId)
+  const rooms = await ChatControllers.getUserRooms(userId)
+
+  // 用promise.all来处理列表性质的 异步请求或许会更好？
+  ctx.body = await Promise.all(
+    rooms.map(async roomInfo => {
+      const roomDetail = roomInfo.toJSON()
+      roomDetail.members = await UserControllers.getUsers(
+        {
+          _id: {
+            $in: roomInfo.members
+          }
+        },
+        {
+          create_time: 0,
+          _temp: 0,
+          expire_time: 0
+        }
+      )
+      return roomDetail
+    })
+  )
+
+  // 倒叙， 最后一次更新的在前边
+  ctx.body.sort((a, b) => b.create_time - a.create_time)
 
   next()
 })
@@ -23,9 +46,7 @@ router.get('/detail', async (ctx, next) => {
       code: 500,
       message: '进入聊天室失败！'
     }
-
     next()
-
     return
   }
 
@@ -47,13 +68,30 @@ router.get('/detail', async (ctx, next) => {
     })
   }
 
-  room.members = await UserControllers.getUsers({
+  ctx.body = room.toObject()
+
+  ctx.body.members = await UserControllers.getUsers({
     _id: {
       $in: members
     }
   })
 
-  ctx.body = room
+  next()
+})
+
+/**
+ * 获取聊天室中的聊天记录
+ */
+router.get('/chats', async (ctx, next) => {
+  const roomId = ctx.request.query.room_id
+  const page = ctx.request.query.page
+  const limit = ctx.request.query.limit
+
+  ctx.body = await ChatControllers.getRoomChats({
+    page,
+    id: roomId,
+    limit
+  })
 
   next()
 })

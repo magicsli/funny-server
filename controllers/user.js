@@ -2,11 +2,12 @@ const UserModel = require('../models/user')
 const { randomString } = require('../utils')
 const crypto = require('crypto')
 
-const getUsers = (options = {}) => {
-  return UserModel.find(options, {
+const getUsers = (params = {}, options) => {
+  return UserModel.find(params, {
     password: 0, // // 省略密码
     friend: 0, // 省略朋友
-    __v: 0 // 省略版本号
+    __v: 0, // 省略版本号
+    ...options
   })
 }
 
