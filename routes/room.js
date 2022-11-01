@@ -1,9 +1,27 @@
 const router = require('koa-router')()
 const { secret } = require('../jwt')
 const jwt = require('koa-jwt')
+const { toJsonWidthTransfromId } = require('../utils')
 const UserControllers = require('../controllers/user')
 const ChatControllers = require('../controllers/chat')
 router.prefix('/room')
+
+const getMembers = async ids => {
+  const users = await UserControllers.getUsers(
+    {
+      _id: {
+        $in: ids
+      }
+    },
+    {
+      create_time: 0,
+      // _temp: 0,
+      expire_time: 0
+    }
+  )
+
+  return users?.map(item => toJsonWidthTransfromId(item, 'user_id'))
+}
 
 router.get('/list', async (ctx, next) => {
   const userId = ctx.state.user._id
@@ -14,18 +32,7 @@ router.get('/list', async (ctx, next) => {
   ctx.body = await Promise.all(
     rooms.map(async roomInfo => {
       const roomDetail = roomInfo.toJSON()
-      roomDetail.members = await UserControllers.getUsers(
-        {
-          _id: {
-            $in: roomInfo.members
-          }
-        },
-        {
-          create_time: 0,
-          _temp: 0,
-          expire_time: 0
-        }
-      )
+      roomDetail.members = await getMembers(roomDetail.members)
       return roomDetail
     })
   )
@@ -37,8 +44,8 @@ router.get('/list', async (ctx, next) => {
 })
 
 router.get('/detail', async (ctx, next) => {
-  const userId = ctx.state.user._id
-  const to = ctx.request.query.id
+  const userId = ctx.state.user._id || ''
+  const to = ctx.request.query.id || ''
 
   if (!userId || !to) {
     ctx.status = 500
@@ -70,11 +77,7 @@ router.get('/detail', async (ctx, next) => {
 
   ctx.body = room.toObject()
 
-  ctx.body.members = await UserControllers.getUsers({
-    _id: {
-      $in: members
-    }
-  })
+  ctx.body.members = await getMembers(members)
 
   next()
 })

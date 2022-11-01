@@ -15,7 +15,11 @@ const IUser = {
 }
 
 // 建立数据模型
-
-const UserModel = mongoose.model('user', new Schema(IUser))
+const UserModel = mongoose.model(
+  'user',
+  new Schema(IUser, {
+    versionKey: false
+  })
+)
 
 module.exports = UserModel

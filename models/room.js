@@ -14,6 +14,11 @@ const IRoom = {
 }
 
 // 建立数据模型
-const RoomModel = mongoose.model('room', new Schema(IRoom))
+const RoomModel = mongoose.model(
+  'room',
+  new Schema(IRoom, {
+    versionKey: false
+  })
+)
 
 module.exports = RoomModel

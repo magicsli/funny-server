@@ -75,10 +75,46 @@ router.post('/login', async (ctx, next) => {
     ctx.cookies.set('token', token, {
       path: '/', // 写cookie所在的路径
       maxAge: activeTime, // cookie有效时长
-      overwrite: false // 是否允许重写})
+      httpOnly: false // 是否只用于http请求中获取
     })
 
     ctx.body = loginUser
+    next()
+  }
+})
+
+// 更新token信息
+router.get('/update', async (ctx, next) => {
+  const userId = ctx.state.user._id
+
+  // 获取到同昵称的用户信息
+  const user = (await UserControllers.getUserById(userId))?.[0]
+
+  if (!user) {
+    ctx.status = 401
+    ctx.body = {
+      code: 401,
+      message: '登录授权失败！'
+    }
+
+    next()
+  } else {
+    const token = await signToken(user._id).catch(() => {
+      ctx.status = 500
+      ctx.body = {
+        code: 500,
+        message: `生成token失败！ ：${error.message}}`
+      }
+      next()
+    })
+
+    ctx.cookies.set('token', token, {
+      path: '/', // 写cookie所在的路径
+      maxAge: activeTime, // cookie有效时长
+      httpOnly: false // 是否只用于http请求中获取
+    })
+
+    ctx.body = user
     next()
   }
 })
@@ -104,7 +140,7 @@ router.post('/visitor', async (ctx, next) => {
   ctx.cookies.set('token', token, {
     path: '/', // 写cookie所在的路径
     maxAge: tempDueTime, // cookie有效时长
-    overwrite: false // 是否允许重写})
+    httpOnly: false // 是否只用于http请求中获取
   })
 
   next()
@@ -154,6 +190,7 @@ router.post('/register', async (ctx, next) => {
     name: username,
     password: passMd,
     create_time: Date.now(),
+    // 暂时不支持头像上传， 给个默认图， 迫切需要一个支持资源上传的站点
     avatar:
       'https://s2.51cto.com/oss/202107/05/de51b4f0711b421ed9714fea6e1ec5e8.jpg?x-oss-process=image/format,webp/ignore-error,1'
   })
@@ -173,7 +210,7 @@ router.post('/register', async (ctx, next) => {
   ctx.cookies.set('token', token, {
     path: '/', // 写cookie所在的路径
     maxAge: activeTime, // cookie有效时长
-    overwrite: false // 是否允许重写})
+    httpOnly: false // 是否只用于http请求中获取
   })
 
   ctx.body = newPerson

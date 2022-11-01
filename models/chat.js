@@ -13,6 +13,11 @@ const IChat = {
 }
 
 // 建立数据模型
-const ChatModel = mongoose.model('chat', new Schema(IChat))
+const ChatModel = mongoose.model(
+  'chat',
+  new Schema(IChat, {
+    versionKey: false
+  })
+)
 
 module.exports = ChatModel

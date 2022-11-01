@@ -16,7 +16,25 @@ function toStr(e) {
   return typeof e === 'string' ? e : e.toString()
 }
 
+/**
+ * 转化数据库中的数据格式， 替换 ‘_id ’字段
+ * @param {Document} doc mongoDb文档
+ * @param {string} key id关键字
+ * @returns
+ */
+function toJsonWidthTransfromId(doc, key = '_id') {
+  if (doc.toJSON) {
+    const _doc = doc.toJSON()
+    _doc[key] = _doc._id
+    delete _doc._id
+    return _doc
+  }
+
+  return doc
+}
+
 module.exports = {
   randomString,
-  toStr
+  toStr,
+  toJsonWidthTransfromId
 }
