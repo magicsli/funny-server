@@ -1,3 +1,5 @@
+const { Document } = require('mongoose')
+
 function randomString(e) {
   e = e || 32
   var t = '_ABCDEFGHJKMNPQRSTWXYZabcdefghijklmnopqrstuvwxyz0123456789',
@@ -17,6 +19,19 @@ function toStr(e) {
 }
 
 /**
+ * 修改对象中的_id属性
+ * @param {{_id?: unknow}} obj 待修改的对象
+ * @param {string} key 新的字段名
+ * @returns 修改_id 字段的新对象
+ */
+function transformId(obj, key = '_id') {
+  const _obj = { ...obj }
+  _obj[key] = _obj._id
+  delete _obj._id
+  return _obj
+}
+
+/**
  * 转化数据库中的数据格式， 替换 ‘_id ’字段
  * @param {Document} doc mongoDb文档
  * @param {string} key id关键字
@@ -24,13 +39,15 @@ function toStr(e) {
  */
 function toJsonWidthTransfromId(doc, key = '_id') {
   if (doc.toJSON) {
-    const _doc = doc.toJSON()
-    _doc[key] = _doc._id
-    delete _doc._id
-    return _doc
+    return transformId(doc.toJSON(), key)
   }
 
-  return doc
+  if (Object.prototype.toString.call(doc) === '[Object Object]') {
+    return transformId(doc, key)
+  }
+
+  throw new Error('未能成功转化_id', doc)
+  // return doc
 }
 
 module.exports = {

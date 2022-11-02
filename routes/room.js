@@ -1,11 +1,16 @@
 const router = require('koa-router')()
-const { secret } = require('../jwt')
-const jwt = require('koa-jwt')
 const { toJsonWidthTransfromId } = require('../utils')
+const { USER_ID, ROOM_ID } = require('../utils/constant')
+
 const UserControllers = require('../controllers/user')
 const ChatControllers = require('../controllers/chat')
 router.prefix('/room')
 
+/**
+ * 转化为用户Id
+ * @param {string[]} ids 用户Id数组
+ * @returns 获取所有查到的用户Id
+ */
 const getMembers = async ids => {
   const users = await UserControllers.getUsers(
     {
@@ -20,7 +25,7 @@ const getMembers = async ids => {
     }
   )
 
-  return users?.map(item => toJsonWidthTransfromId(item, 'user_id'))
+  return users?.map(item => toJsonWidthTransfromId(item, USER_ID))
 }
 
 router.get('/list', async (ctx, next) => {
@@ -31,7 +36,7 @@ router.get('/list', async (ctx, next) => {
   // 用promise.all来处理列表性质的 异步请求或许会更好？
   ctx.body = await Promise.all(
     rooms.map(async roomInfo => {
-      const roomDetail = roomInfo.toJSON()
+      const roomDetail = toJsonWidthTransfromId(roomInfo, ROOM_ID)
       roomDetail.members = await getMembers(roomDetail.members)
       return roomDetail
     })
@@ -43,6 +48,7 @@ router.get('/list', async (ctx, next) => {
   next()
 })
 
+// 聊天室详情
 router.get('/detail', async (ctx, next) => {
   const userId = ctx.state.user._id || ''
   const to = ctx.request.query.id || ''
@@ -75,16 +81,14 @@ router.get('/detail', async (ctx, next) => {
     })
   }
 
-  ctx.body = room.toObject()
+  ctx.body = toJsonWidthTransfromId(room, ROOM_ID)
 
   ctx.body.members = await getMembers(members)
 
   next()
 })
 
-/**
- * 获取聊天室中的聊天记录
- */
+// 获取聊天室中的聊天记录
 router.get('/chats', async (ctx, next) => {
   const roomId = ctx.request.query.room_id
   const page = ctx.request.query.page

@@ -3,6 +3,11 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const IRoom = {
+  name: {
+    // 聊天室标题 （如果是私聊则不保存）
+    type: Boolean,
+    default: ''
+  },
   secret: {
     // 是否为 私聊 （一对一）
     type: Boolean,
