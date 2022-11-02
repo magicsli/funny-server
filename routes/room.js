@@ -74,6 +74,7 @@ router.get('/detail', async (ctx, next) => {
 
   if (!room) {
     room = await ChatControllers.createRoom({
+      name: '',
       secret: true,
       members,
       status: 'normal',

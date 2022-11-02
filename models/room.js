@@ -5,7 +5,7 @@ const Schema = mongoose.Schema
 const IRoom = {
   name: {
     // 聊天室标题 （如果是私聊则不保存）
-    type: Boolean,
+    type: String,
     default: ''
   },
   secret: {
