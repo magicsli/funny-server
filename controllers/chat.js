@@ -15,32 +15,27 @@ const getUserRooms = id => {
     member: {
       $elemMatch: userId
     }
-  }).then(async res => {
-    for await (const iterator of res) {
-      const chat_last = await ChatModel.find({
-        room_id: iterator._id
-      }).sort({ _id: -1 })
-
-      iterator.chat_last = chat_last[0]
-
-      // 当前聊天室已读数量
-      iterator.unread = chat_last.filter(item => {
-        return item.read_list.includes(userId) && item.from !== userId
-      }).length
-    }
-
-    return res
   })
 }
 
 /**
- * 获取用户聊天室列表
+ * 搜索聊天记录 （所有）
+ * @param {object} rule 搜索权限
+ * @param {object} options 显示类型
+ * @returns 搜索结果 - 从后向前
+ */
+const getChat = (rule, options) => {
+  return ChatModel.find(rule, options).sort({ _id: -1 })
+}
+
+/**
+ * 获取用户（聊天室内）聊天记录
  * @param {string | ObjectId} id 聊天室Id
  * @param {number} page 页码
  * @param {number} limit 每页传入多少 默认20
  * @returns
  */
-const getRoomChats = ({ id, page = 1, limit = 20 }) => {
+const getRoomMessage = ({ id, page = 1, limit = 20 }) => {
   const roomId = toStr(id)
 
   return ChatModel.find({
@@ -49,6 +44,22 @@ const getRoomChats = ({ id, page = 1, limit = 20 }) => {
     .sort({ _id: -1 })
     .limit(limit)
     .skip((page - 1) * limit)
+}
+
+/**
+ * 获取
+ * @param {string} id 聊天室Id
+ * @returns
+ */
+const getLastMessage = id => {
+  return ChatModel.find({
+    room_id: id
+  })
+    .sort({ _id: -1 })
+    .limit(1)
+    .transform(doc => {
+      return doc[0]?.toJSON()
+    })
 }
 
 /**
@@ -79,8 +90,10 @@ const getRoom = async options => {
 
 module.exports = {
   getUserRooms,
-  getRoomChats,
+  getRoomMessage,
+  getLastMessage,
   createChat,
   createRoom,
-  getRoom
+  getRoom,
+  getChat
 }

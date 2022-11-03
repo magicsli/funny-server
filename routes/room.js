@@ -38,6 +38,17 @@ router.get('/list', async (ctx, next) => {
     rooms.map(async roomInfo => {
       const roomDetail = toJsonWidthTransfromId(roomInfo, ROOM_ID)
       roomDetail.members = await getMembers(roomDetail.members)
+      const chat_last = await ChatControllers.getChat({
+        room_id: roomInfo._id
+      }).sort({ _id: -1 })
+
+      roomDetail.last = chat_last[0]
+
+      // 当前聊天室已读数量 - 此数字不会进行动态更新， 每次获取计算！
+      roomDetail.unread = chat_last.filter(item => {
+        return !item.read_list.includes(userId) && item.from !== userId
+      }).length
+
       return roomDetail
     })
   )
@@ -48,8 +59,8 @@ router.get('/list', async (ctx, next) => {
   next()
 })
 
-// 聊天室详情
-router.get('/detail', async (ctx, next) => {
+//  创建/进入 私聊聊天室详情
+router.get('/secret', async (ctx, next) => {
   const userId = ctx.state.user._id || ''
   const to = ctx.request.query.id || ''
 
@@ -83,8 +94,8 @@ router.get('/detail', async (ctx, next) => {
   }
 
   ctx.body = toJsonWidthTransfromId(room, ROOM_ID)
-
   ctx.body.members = await getMembers(members)
+  ctx.body.last = await ChatControllers.getLastMessage(room._id)
 
   next()
 })
