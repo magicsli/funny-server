@@ -59,6 +59,17 @@ router.get('/list', async (ctx, next) => {
   next()
 })
 
+router.get('/detail', async (ctx, next) => {
+  const room_id = ctx.request.query.room_id || ''
+
+  const rooms = await ChatControllers.getRoom({ _id: room_id })
+
+  // 倒叙， 最后一次更新的在前边
+  ctx.body = toJsonWidthTransfromId(rooms, ROOM_ID)
+
+  next()
+})
+
 //  创建/进入 私聊聊天室详情
 router.get('/secret', async (ctx, next) => {
   const userId = ctx.state.user._id || ''
