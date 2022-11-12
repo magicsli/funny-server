@@ -28,6 +28,21 @@ const getUserByName = name => {
 }
 
 /**
+ * 查询指定用户
+ * @param {object} params 查询参数
+ * @param {object} options 配置参数
+ * @returns
+ */
+const findUser = (params = {}, options) => {
+  return UserModel.findOne(params, {
+    password: 0, // // 省略密码
+    friend: 0, // 省略朋友
+    __v: 0, // 省略版本号
+    ...options
+  })
+}
+
+/**
  * 根据用户（id）查询用户
  * @param {string} id 用户id
  * @returns 查询到的用户
@@ -113,5 +128,6 @@ module.exports = {
   getUserByName,
   registerUser,
   removeUser,
+  findUser,
   createTempUser
 }

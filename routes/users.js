@@ -37,7 +37,7 @@ const signToken = (id, expiresIn = activeTime) => {
 
 // 登录
 router.post('/login', async (ctx, next) => {
-  const { username, password, isQuick } = ctx.request.body
+  const { username, password } = ctx.request.body
 
   if (!username || !password) {
     ctx.status = 400
@@ -51,10 +51,9 @@ router.post('/login', async (ctx, next) => {
   const passMd = crypto.createHash('md5').update(password).digest('hex')
 
   // 获取到同昵称的用户信息
-  const users = await UserControllers.getUserByName(username)
-
-  const loginUser = users?.find(item => {
-    return item.password === passMd
+  const loginUser = await UserControllers.findUser({
+    name: username,
+    password: passMd
   })
 
   if (!loginUser) {
@@ -201,7 +200,7 @@ router.post('/register', async (ctx, next) => {
   /**
    * 注： 正常响应必须在内部的async周期中， 在回调函数中无法响应！（但是可以响应错误态/500）
    */
-  const token = await signToken(tempUser._id).catch(() => {
+  const token = await signToken(newPerson._id).catch(() => {
     ctx.status = 500
     ctx.body = {
       code: 500,
