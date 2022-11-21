@@ -38,6 +38,9 @@ function transformId(obj, key = '_id') {
  * @returns
  */
 function toJsonWidthTransfromId(doc, key = '_id') {
+  var a = []
+  console.log(' doc.qweQWE', a.WERQWSASDASDASD.id) // 此属性不存在， 但是不会报错
+
   if (doc.toJSON) {
     return transformId(doc.toJSON(), key)
   }

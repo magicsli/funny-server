@@ -44,6 +44,7 @@ const getRoomMessage = ({ id, page = 1, limit = 20 }) => {
     .sort({ _id: -1 })
     .limit(limit)
     .skip((page - 1) * limit)
+    .sort({ _id: 1 }) /*  */
 }
 
 /**

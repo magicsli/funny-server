@@ -1,6 +1,6 @@
 const router = require('koa-router')()
 const { toJsonWidthTransfromId } = require('../utils')
-const { USER_ID, ROOM_ID } = require('../utils/constant')
+const { USER_ID, CHAT_ID, ROOM_ID } = require('../utils/constant')
 
 const UserControllers = require('../controllers/user')
 const ChatControllers = require('../controllers/chat')
@@ -62,10 +62,9 @@ router.get('/list', async (ctx, next) => {
 router.get('/detail', async (ctx, next) => {
   const room_id = ctx.request.query.room_id || ''
 
-  const rooms = await ChatControllers.getRoom({ _id: room_id })
-
-  // 倒叙， 最后一次更新的在前边
-  ctx.body = toJsonWidthTransfromId(rooms, ROOM_ID)
+  const room = await ChatControllers.getRoom({ _id: room_id })
+  ctx.body = toJsonWidthTransfromId(room, ROOM_ID)
+  ctx.body.members = await getMembers(room.members)
 
   next()
 })
@@ -112,16 +111,36 @@ router.get('/secret', async (ctx, next) => {
 })
 
 // 获取聊天室中的聊天记录
-router.get('/chats', async (ctx, next) => {
+router.get('/chat', async (ctx, next) => {
   const roomId = ctx.request.query.room_id
   const page = ctx.request.query.page
   const limit = ctx.request.query.limit
 
-  ctx.body = await ChatControllers.getRoomChats({
+  ctx.body = await ChatControllers.getRoomMessage({
     page,
     id: roomId,
     limit
   })
+
+  next()
+})
+
+// 获取聊天室中的聊天记录
+router.post('/chat', async (ctx, next) => {
+  const userId = ctx.state.user._id || ''
+
+  const { room_id, message } = ctx.request.body
+
+  const chat = await ChatControllers.createChat({
+    from: userId,
+    read_list: [],
+    type: 'str',
+    content: message,
+    room_id,
+    create_time: Date.now()
+  })
+
+  ctx.body = toJsonWidthTransfromId(chat, CHAT_ID)
 
   next()
 })
