@@ -42,7 +42,7 @@ function toJsonWidthTransfromId(doc, key = '_id') {
     return transformId(doc.toJSON(), key)
   }
 
-  if (Object.prototype.toString.call(doc) === '[Object Object]') {
+  if (Object.prototype.toString.call(doc).toLowerCase() === '[object object]') {
     return transformId(doc, key)
   }
 
