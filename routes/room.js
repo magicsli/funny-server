@@ -116,11 +116,13 @@ router.get('/chat', async (ctx, next) => {
   const page = ctx.request.query.page
   const limit = ctx.request.query.limit
 
-  ctx.body = await ChatControllers.getRoomMessage({
+  const chatList = await ChatControllers.getRoomMessage({
     page,
     id: roomId,
     limit
   })
+
+  ctx.body = chatList.map(item => toJsonWidthTransfromId(item, CHAT_ID))
 
   next()
 })

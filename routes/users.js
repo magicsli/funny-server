@@ -193,8 +193,7 @@ router.post('/register', async (ctx, next) => {
     password: passMd,
     create_time: Date.now(),
     // 暂时不支持头像上传， 给个默认图， 迫切需要一个支持资源上传的站点
-    avatar:
-      'https://s2.51cto.com/oss/202107/05/de51b4f0711b421ed9714fea6e1ec5e8.jpg?x-oss-process=image/format,webp/ignore-error,1'
+    avatar: 'https://s2.51cto.com/oss/202107/05/de51b4f0711b421ed9714fea6e1ec5e8.jpg'
   })
 
   /**
